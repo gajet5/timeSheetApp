@@ -1,0 +1,49 @@
+{
+  "name": "timesheetapp",
+  "version": "1.0.0",
+  "description": "Application for recording employee time.",
+  "main": "main/main.js",
+  "scripts": {
+    "startApp": "electron .",
+    "devApp": "set NODE_ENV=development&&electron .",
+    "pack": "build"
+  },
+  "build": {
+    "appId": "com.electron.timesheetapp",
+    "productName": "Time Sheet",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "ia32"
+          ]
+        }
+      ]
+    },
+    "directories": {
+      "output": "dist"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gajet5/timeSheetApp.git"
+  },
+  "author": "Ilya Zadonskiy",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gajet5/timeSheetApp/issues"
+  },
+  "homepage": "https://github.com/gajet5/timeSheetApp#readme",
+  "devDependencies": {
+    "electron": "^5.0.2",
+    "electron-builder": "^20.41.0"
+  },
+  "dependencies": {
+    "fs-extra": "^8.0.1"
+  }
+}
