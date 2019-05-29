@@ -12,7 +12,10 @@ module.exports = () => {
     });
 
     // Time Sheet
-    ipcMain.on('get-user-time-sheet', async (event, userData) => {
-        event.sender.send('get-user-time-sheet-replay', await timeSheetController.getUserTimeSheet(userData));
+    ipcMain.on('get-time-sheet', async (event, userData) => {
+        event.sender.send('get-time-sheet-replay', await timeSheetController.getTimeSheet(userData));
+    });
+    ipcMain.on('save-time-sheet', async (event, data) => {
+        event.sender.send('save-time-sheet-replay', await timeSheetController.saveTimeSheet(data));
     });
 };

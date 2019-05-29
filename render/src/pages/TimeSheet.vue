@@ -31,7 +31,7 @@
                     <v-card-actions v-show="userSelected">
                         <v-spacer></v-spacer>
                         <v-btn flat color="success" v-if="!inWork" @click="startWork">Приход</v-btn>
-                        <v-btn flat color="error" v-else @click="finishWork">Уход</v-btn>
+                        <v-btn flat color="error" v-else @click="finishWork" v-show="!outWork">Уход</v-btn>
                     </v-card-actions>
                 </v-card>
             </v-flex>
@@ -49,7 +49,6 @@
             WebCam
         },
         beforeMount() {
-            this.reportFileName = `${moment().format('YYYY-MM')}.json`;
             this.$store.dispatch('getUsers');
             this.setTime();
             setInterval(this.setTime, 1000);
@@ -62,8 +61,9 @@
                 devices: [],
                 userSelected: '',
                 reportDate: '',
-                reportFileName: '',
-                timeSheet: null
+                timeSheet: null,
+                inWork: false,
+                outWork: false
             }
         },
         watch: {
@@ -78,19 +78,25 @@
                 }
             },
             async userSelected() {
+                if (!this.userSelected) {
+                    return false;
+                }
+
                 this.timeSheet = await this.$store.dispatch('getUserTimeSheet', {
                     user: this.userSelected,
-                    file: this.reportFileName
+                    month:moment().format('MM'),
+                    year: moment().format('YYYY')
                 });
-                console.log(this.timeSheet);
-            }
-        },
-        computed: {
-            inWork() {
+
                 try {
-                    return !!this.timeSheet[moment().format('DD')].start;
+                    this.inWork = !!this.timeSheet[moment().format('DD')].startTime;
                 } catch (e) {
-                    return false;
+                    this.inWork = false;
+                }
+                try {
+                    this.outWork = !!this.timeSheet[moment().format('DD')].stopTime;
+                } catch (e) {
+                    this.outWork = false;
                 }
             }
         },
@@ -102,13 +108,41 @@
                 this.dateTime = moment().format('DD.MM.YYYY HH:mm:ss');
             },
             startWork() {
-                this.sendReport();
+                if (!this.timeSheet) {
+                    this.timeSheet = {};
+                }
+
+                if (!(moment().format('DD') in this.timeSheet)) {
+                    this.timeSheet[moment().format('DD')] = {};
+                }
+
+                Object.assign(this.timeSheet[moment().format('DD')], {
+                    startTime: moment().unix(),
+                    startFoto: this.$refs.webcam.capture()
+                });
+
+                this.saveTimeSheet('start');
+                this.userSelected = '';
             },
             finishWork() {
-                this.sendReport();
+                Object.assign(this.timeSheet[moment().format('DD')], {
+                    stopTime: moment().unix(),
+                    stopFoto: this.$refs.webcam.capture()
+                });
+
+                this.saveTimeSheet('stop');
+                this.userSelected = '';
             },
-            sendReport() {
-                this.$store.dispatch('saveTimeSheet', this.timeSheet);
+            async saveTimeSheet(status) {
+                await this.$store.dispatch('saveTimeSheet', {
+                    status,
+                    timeSheet: this.timeSheet,
+                    user: this.userSelected,
+                    file: this.reportFileName,
+                    day: moment().format('DD'),
+                    month:moment().format('MM'),
+                    year: moment().format('YYYY')
+                });
             }
         }
     }

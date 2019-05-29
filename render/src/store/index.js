@@ -41,13 +41,19 @@ export default new Vuex.Store({
             ipcRenderer.send('save-users', getters.users);
         },
         getUserTimeSheet(ctx, userData) {
-            ipcRenderer.send('get-user-time-sheet', userData);
+            ipcRenderer.send('get-time-sheet', userData);
 
             return new Promise(resolve => {
-                ipcRenderer.once('get-user-time-sheet-replay', (event, result) => {
+                ipcRenderer.once('get-time-sheet-replay', (event, result) => {
                     resolve(result);
                 });
             });
+        },
+        saveTimeSheet(ctx, data) {
+            ipcRenderer.once('save-time-sheet-replay', (event, result) => {
+                console.log(result);
+            });
+            ipcRenderer.send('save-time-sheet', data);
         }
     }
 });
