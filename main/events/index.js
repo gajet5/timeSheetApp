@@ -1,6 +1,7 @@
 const { ipcMain } = require('electron');
 const usersController = require('../controllers/users');
 const timeSheetController = require('../controllers/timeSheet');
+const reportsController = require('../controllers/reports');
 
 module.exports = () => {
     // Users
@@ -17,5 +18,19 @@ module.exports = () => {
     });
     ipcMain.on('save-time-sheet', async (event, data) => {
         event.sender.send('save-time-sheet-replay', await timeSheetController.saveTimeSheet(data));
+    });
+
+    // Reports
+    ipcMain.on('get-users-reports', async event => {
+        event.sender.send('get-users-reports-replay', await reportsController.getUsers());
+    });
+    ipcMain.on('get-year-reports', async (event, user) => {
+        event.sender.send('get-year-reports-replay', await reportsController.getYear(user));
+    });
+    ipcMain.on('get-month-reports', async (event, data) => {
+        event.sender.send('get-month-reports-replay', await reportsController.getMonth(data));
+    });
+    ipcMain.on('get-reports', async (event, data) => {
+        event.sender.send('get-reports-replay', await reportsController.getReport(data));
     });
 };

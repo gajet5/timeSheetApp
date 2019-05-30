@@ -26,7 +26,8 @@ function createWindow() {
         resizable: false,
         title: 'Time managment',
         webPreferences: {
-            nodeIntegration: true
+            nodeIntegration: true,
+            webSecurity: false
         }
     });
 

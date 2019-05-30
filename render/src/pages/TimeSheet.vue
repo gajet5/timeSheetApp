@@ -30,6 +30,10 @@
                     </v-card-text>
                     <v-card-actions v-show="userSelected">
                         <v-spacer></v-spacer>
+                        <div v-show="inWork">
+                            <v-btn flat color="warning" v-if="!inPause" @click="pauseWork">Пауза</v-btn>
+                            <v-btn flat color="info" v-else @click="unpauseWork" v-show="!unPause">Продолжить</v-btn>
+                        </div>
                         <v-btn flat color="success" v-if="!inWork" @click="startWork">Приход</v-btn>
                         <v-btn flat color="error" v-else @click="finishWork" v-show="!outWork">Уход</v-btn>
                     </v-card-actions>
@@ -63,7 +67,9 @@
                 reportDate: '',
                 timeSheet: null,
                 inWork: false,
-                outWork: false
+                outWork: false,
+                inPause: false,
+                unPause: false
             }
         },
         watch: {
@@ -82,11 +88,7 @@
                     return false;
                 }
 
-                this.timeSheet = await this.$store.dispatch('getUserTimeSheet', {
-                    user: this.userSelected,
-                    month:moment().format('MM'),
-                    year: moment().format('YYYY')
-                });
+                await this.getTimeSheet();
 
                 try {
                     this.inWork = !!this.timeSheet[moment().format('DD')].startTime;
@@ -98,9 +100,26 @@
                 } catch (e) {
                     this.outWork = false;
                 }
+                try {
+                    this.inPause = !!this.timeSheet[moment().format('DD')].pauseTime;
+                } catch (e) {
+                    this.inPause = false;
+                }
+                try {
+                    this.unPause = !!this.timeSheet[moment().format('DD')].unpauseTime;
+                } catch (e) {
+                    this.unPause = false;
+                }
             }
         },
         methods: {
+            async getTimeSheet() {
+                this.timeSheet = await this.$store.dispatch('getUserTimeSheet', {
+                    user: this.userSelected,
+                    month:moment().format('MM'),
+                    year: moment().format('YYYY')
+                });
+            },
             onCameras(cameras) {
                 this.devices = cameras;
             },
@@ -117,28 +136,55 @@
                 }
 
                 Object.assign(this.timeSheet[moment().format('DD')], {
-                    startTime: moment().unix(),
-                    startFoto: this.$refs.webcam.capture()
+                    startTime: +moment(),
+                    startFoto: this.$refs.webcam.capture(),
+                    stopTime: 0,
+                    dayOfWeek: moment().format('ddd')
                 });
 
                 this.saveTimeSheet('start');
                 this.userSelected = '';
             },
-            finishWork() {
+            async finishWork() {
+                if (!this.unPause) {
+                    this.unpauseWork(null, true);
+                    await this.getTimeSheet();
+                }
+
                 Object.assign(this.timeSheet[moment().format('DD')], {
-                    stopTime: moment().unix(),
+                    stopTime: +moment(),
                     stopFoto: this.$refs.webcam.capture()
                 });
 
                 this.saveTimeSheet('stop');
                 this.userSelected = '';
             },
+            pauseWork() {
+                Object.assign(this.timeSheet[moment().format('DD')], {
+                    pauseTime: +moment(),
+                    pauseFoto: this.$refs.webcam.capture(),
+                    unpauseTime: 0,
+                });
+
+                this.saveTimeSheet('pause');
+                this.userSelected = '';
+            },
+            unpauseWork(e, finishWork = false) {
+                Object.assign(this.timeSheet[moment().format('DD')], {
+                    unpauseTime: +moment(),
+                    unpauseFoto: this.$refs.webcam.capture()
+                });
+
+                this.saveTimeSheet('unpause');
+                if (!finishWork) {
+                    this.userSelected = '';
+                }
+            },
             async saveTimeSheet(status) {
                 await this.$store.dispatch('saveTimeSheet', {
                     status,
                     timeSheet: this.timeSheet,
                     user: this.userSelected,
-                    file: this.reportFileName,
                     day: moment().format('DD'),
                     month:moment().format('MM'),
                     year: moment().format('YYYY')

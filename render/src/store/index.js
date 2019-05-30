@@ -54,6 +54,42 @@ export default new Vuex.Store({
                 console.log(result);
             });
             ipcRenderer.send('save-time-sheet', data);
+        },
+        getUsersReports() {
+            ipcRenderer.send('get-users-reports');
+
+            return new Promise(resolve => {
+                ipcRenderer.once('get-users-reports-replay', (event, result) => {
+                    resolve(result);
+                });
+            });
+        },
+        getYearReports(ctx, user) {
+            ipcRenderer.send('get-year-reports', user);
+
+            return new Promise(resolve => {
+                ipcRenderer.once('get-year-reports-replay', (event, result) => {
+                    resolve(result);
+                });
+            });
+        },
+        getMonthReports(ctx, data) {
+            ipcRenderer.send('get-month-reports', data);
+
+            return new Promise(resolve => {
+                ipcRenderer.once('get-month-reports-replay', (event, result) => {
+                    resolve(result);
+                });
+            });
+        },
+        getReports(ctx, data) {
+            ipcRenderer.send('get-reports', data);
+
+            return new Promise(resolve => {
+                ipcRenderer.once('get-reports-replay', (event, result) => {
+                    resolve(result);
+                });
+            });
         }
     }
 });

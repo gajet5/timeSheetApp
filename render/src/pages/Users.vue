@@ -61,7 +61,7 @@
                 delUser: '',
                 snackbar: false,
                 snackbarText: '',
-                snackbarColor: 'info'
+                snackbarColor: 'info',
             }
         },
         methods: {
