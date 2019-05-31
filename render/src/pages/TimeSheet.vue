@@ -30,7 +30,7 @@
                     </v-card-text>
                     <v-card-actions v-show="userSelected">
                         <v-spacer></v-spacer>
-                        <div v-show="inWork">
+                        <div v-show="inWork && !outWork">
                             <v-btn flat color="warning" v-if="!inPause" @click="pauseWork">Пауза</v-btn>
                             <v-btn flat color="info" v-else @click="unpauseWork" v-show="!unPause">Продолжить</v-btn>
                         </div>
@@ -148,11 +148,6 @@
                 this.userSelected = '';
             },
             async finishWork() {
-                if (!this.unPause) {
-                    this.unpauseWork(null, true);
-                    await this.getTimeSheet();
-                }
-
                 Object.assign(this.timeSheet[moment().format('DD')], {
                     stopTime: +moment(),
                     stopFoto: this.$refs.webcam.capture()
@@ -171,16 +166,14 @@
                 this.saveTimeSheet('pause');
                 this.userSelected = '';
             },
-            unpauseWork(e, finishWork = false) {
+            unpauseWork() {
                 Object.assign(this.timeSheet[moment().format('DD')], {
                     unpauseTime: +moment(),
                     unpauseFoto: this.$refs.webcam.capture()
                 });
 
                 this.saveTimeSheet('unpause');
-                if (!finishWork) {
-                    this.userSelected = '';
-                }
+                this.userSelected = '';
             },
             async saveTimeSheet(status) {
                 await this.$store.dispatch('saveTimeSheet', {

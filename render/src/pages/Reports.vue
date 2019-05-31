@@ -82,7 +82,7 @@
                                         <div>Дата: {{item.day}} {{item.dayOfWeek}}</div>
                                         <div>
                                             На работе: {{item.timeAtWork}}
-                                            <v-icon color="error" v-show="item.isStopTime">
+                                            <v-icon color="error" v-show="!item.isStopTime">
                                                 warning
                                             </v-icon>
                                         </div>
@@ -91,7 +91,7 @@
                                         <div>Переработка: {{item.extraHours}}</div>
                                         <div>
                                             Пауза: {{item.pauseTotalTime}}
-                                            <v-icon color="error" v-show="item.isUnpauseTime">
+                                            <v-icon color="error" v-show="item.isPauseTime && !item.isUnpauseTime">
                                                 warning
                                             </v-icon>
                                         </div>
@@ -242,10 +242,11 @@
                 for (let day in this.reports) {
                     let startTime = parseInt(this.reports[day].startTime);
                     let stopTime = parseInt(this.reports[day].stopTime) === 0 ? startTime : parseInt(this.reports[day].stopTime);
-                    let isStopTime = parseInt(this.reports[day].stopTime) === 0;
+                    let isStopTime = parseInt(this.reports[day].stopTime) !== 0;
                     let pauseTime = parseInt(this.reports[day].pauseTime) === 0 ? +moment() : parseInt(this.reports[day].pauseTime);
                     let unpauseTime = parseInt(this.reports[day].unpauseTime) === 0 ? pauseTime : parseInt(this.reports[day].unpauseTime);
-                    let isUnpauseTime = parseInt(this.reports[day].unpauseTime) === 0;
+                    let isPauseTime = parseInt(this.reports[day].pauseTime) !== 0;
+                    let isUnpauseTime = parseInt(this.reports[day].unpauseTime) !== 0;
 
                     let report = {
                         day,
@@ -258,6 +259,7 @@
                         timeAtWork: Math.round(parseFloat(moment.duration((stopTime - startTime) - (unpauseTime - pauseTime)).asHours()) * 100) / 100,
                         extraHours: 0,
                         pauseTime: moment(pauseTime).format('HH:mm:ss'),
+                        isPauseTime,
                         unpauseTime: moment(unpauseTime).format('HH:mm:ss'),
                         isUnpauseTime,
                         pauseTotalTime: Math.round(parseFloat(moment.duration(unpauseTime - pauseTime).asHours()) * 100) / 100,
@@ -268,21 +270,29 @@
                     // todo: Непонятный баг с округлением.
                     // let timeRound = Math.round(report.timeAtWork * 100) / 100;
 
-                    if (report.dayOfWeek === 'Sun' || report.dayOfWeek === 'Sat') {
-                        this.totalHoursDayOff += report.timeAtWork;
-                    } else {
-                        this.totalHours += Math.round(report.timeAtWork * 100) / 100;
-
-                        if (report.timeAtWork > 9) {
-                            report.extraHours = report.timeAtWork - 9;
-                            report.timeAtWork = 9
+                    if (isStopTime) {
+                        if (isPauseTime && !isUnpauseTime) {
+                            this.list.push(report);
+                            continue;
                         }
+
+                        if (report.dayOfWeek === 'Sun' || report.dayOfWeek === 'Sat') {
+                            this.totalHoursDayOff += report.timeAtWork;
+                        } else {
+                            if (report.timeAtWork > 9) {
+                                report.extraHours = report.timeAtWork - 9;
+                                report.timeAtWork = report.timeAtWork - report.extraHours;
+                            }
+
+                            this.totalHours += Math.round(report.timeAtWork * 100) / 100;
+                            this.totalExtraHours += Math.round(report.extraHours * 100) / 100;
+                        }
+
+                        this.totalDays += 1;
                     }
 
                     this.list.push(report);
                 }
-
-                this.totalDays = this.list.length;
             }
         },
         methods: {
