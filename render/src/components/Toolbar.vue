@@ -70,6 +70,7 @@
             },
             removePassword() {
                 this.inputPassword = '';
+                this.$router.push('/');
             }
         },
     }
