@@ -24,7 +24,7 @@ function createWindow() {
         width: 450,
         height: 600,
         resizable: false,
-        title: 'Time managment',
+        title: 'Time Sheet',
         webPreferences: {
             nodeIntegration: true,
             webSecurity: false

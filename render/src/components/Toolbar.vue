@@ -14,6 +14,7 @@
         <v-dialog
                 :value="dialog"
                 width="500"
+                persistent
         >
 
             <v-card>
