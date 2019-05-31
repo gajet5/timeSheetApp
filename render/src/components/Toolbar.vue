@@ -32,6 +32,7 @@
                             label="Пароль"
                             type="password"
                             v-model="inputPassword"
+                            @keypress.enter="dialog = false"
                     ></v-text-field>
 
                     <v-spacer></v-spacer>

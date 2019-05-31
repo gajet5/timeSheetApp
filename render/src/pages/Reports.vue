@@ -80,11 +80,21 @@
                                 <v-layout>
                                     <v-flex xs6>
                                         <div>Дата: {{item.day}} {{item.dayOfWeek}}</div>
-                                        <div>На работе: {{item.timeAtWork}}</div>
+                                        <div>
+                                            На работе: {{item.timeAtWork}}
+                                            <v-icon color="error" v-show="item.isStopTime">
+                                                warning
+                                            </v-icon>
+                                        </div>
                                     </v-flex>
                                     <v-flex xs6>
                                         <div>Переработка: {{item.extraHours}}</div>
-                                        <div>Пауза: {{item.pauseTotalTime}}</div>
+                                        <div>
+                                            Пауза: {{item.pauseTotalTime}}
+                                            <v-icon color="error" v-show="item.isUnpauseTime">
+                                                warning
+                                            </v-icon>
+                                        </div>
                                     </v-flex>
                                 </v-layout>
                                 <v-expansion-panel>
@@ -155,7 +165,6 @@
                                         </v-card>
                                     </v-expansion-panel-content>
                                 </v-expansion-panel>
-
                             </v-card-text>
                         </v-card>
                     </v-container>
@@ -223,6 +232,7 @@
                 if (!this.reports) {
                     return false;
                 }
+
                 this.totalDays = 0;
                 this.totalHours = 0;
                 this.totalHoursDayOff = 0;
@@ -231,14 +241,17 @@
 
                 for (let day in this.reports) {
                     let startTime = parseInt(this.reports[day].startTime);
-                    let stopTime = parseInt(this.reports[day].stopTime) === 0 ? +moment() : parseInt(this.reports[day].stopTime);
-                    let pauseTime = parseInt(this.reports[day].pauseTime);
-                    let unpauseTime = parseInt(this.reports[day].unpauseTime);
+                    let stopTime = parseInt(this.reports[day].stopTime) === 0 ? startTime : parseInt(this.reports[day].stopTime);
+                    let isStopTime = parseInt(this.reports[day].stopTime) === 0;
+                    let pauseTime = parseInt(this.reports[day].pauseTime) === 0 ? +moment() : parseInt(this.reports[day].pauseTime);
+                    let unpauseTime = parseInt(this.reports[day].unpauseTime) === 0 ? pauseTime : parseInt(this.reports[day].unpauseTime);
+                    let isUnpauseTime = parseInt(this.reports[day].unpauseTime) === 0;
 
                     let report = {
                         day,
                         dayOfWeek: this.reports[day].dayOfWeek,
                         startTime: moment(startTime).format('HH:mm:ss'),
+                        isStopTime,
                         startFoto: this.reports[day].startFoto,
                         stopTime: moment(stopTime).format('HH:mm:ss'),
                         stopFoto: this.reports[day].stopFoto,
@@ -246,6 +259,7 @@
                         extraHours: 0,
                         pauseTime: moment(pauseTime).format('HH:mm:ss'),
                         unpauseTime: moment(unpauseTime).format('HH:mm:ss'),
+                        isUnpauseTime,
                         pauseTotalTime: Math.round(parseFloat(moment.duration(unpauseTime - pauseTime).asHours()) * 100) / 100,
                         pauseFoto: this.reports[day].pauseFoto,
                         unpauseFoto: this.reports[day].unpauseFoto

@@ -139,6 +139,8 @@
                     startTime: +moment(),
                     startFoto: this.$refs.webcam.capture(),
                     stopTime: 0,
+                    pauseTime: 0,
+                    unpauseTime: 0,
                     dayOfWeek: moment().format('ddd')
                 });
 
