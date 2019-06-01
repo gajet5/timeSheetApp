@@ -67,7 +67,7 @@
                                 Переработка: {{totalExtraHours}}
                             </v-flex>
                             <v-flex xs6>
-                                Выходные дни: {{totalHoursDayOff}}
+                                Выходные часы: {{totalHoursDayOff}}
                             </v-flex>
                         </v-layout>
                     </v-card-title>
@@ -256,7 +256,7 @@
                         startFoto: this.reports[day].startFoto,
                         stopTime: moment(stopTime).format('HH:mm:ss'),
                         stopFoto: this.reports[day].stopFoto,
-                        timeAtWork: Math.round(parseFloat(moment.duration((stopTime - startTime) - (unpauseTime - pauseTime)).asHours()) * 100) / 100,
+                        timeAtWork: (Math.round(parseFloat(moment.duration((stopTime - startTime) - (unpauseTime - pauseTime)).asHours()) * 100) / 100) - 1,
                         extraHours: 0,
                         pauseTime: moment(pauseTime).format('HH:mm:ss'),
                         isPauseTime,
@@ -270,6 +270,10 @@
                     // todo: Непонятный баг с округлением.
                     // let timeRound = Math.round(report.timeAtWork * 100) / 100;
 
+                    if (report.timeAtWork === -1) {
+                        report.timeAtWork = 0;
+                    }
+
                     if (isStopTime) {
                         if (isPauseTime && !isUnpauseTime) {
                             this.list.push(report);
@@ -279,8 +283,8 @@
                         if (report.dayOfWeek === 'Sun' || report.dayOfWeek === 'Sat') {
                             this.totalHoursDayOff += report.timeAtWork;
                         } else {
-                            if (report.timeAtWork > 9) {
-                                report.extraHours = report.timeAtWork - 9;
+                            if (report.timeAtWork > 8) {
+                                report.extraHours = report.timeAtWork - 8;
                                 report.timeAtWork = report.timeAtWork - report.extraHours;
                             }
 
