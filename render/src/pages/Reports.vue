@@ -256,7 +256,7 @@
                         startFoto: this.reports[day].startFoto,
                         stopTime: moment(stopTime).format('HH:mm:ss'),
                         stopFoto: this.reports[day].stopFoto,
-                        timeAtWork: (Math.round(parseFloat(moment.duration((stopTime - startTime) - (unpauseTime - pauseTime)).asHours()) * 100) / 100) - 1,
+                        timeAtWork: (Math.round(parseFloat(moment.duration((stopTime - startTime) - (unpauseTime - pauseTime)).asHours()) * 100) / 100),
                         extraHours: 0,
                         pauseTime: moment(pauseTime).format('HH:mm:ss'),
                         isPauseTime,
