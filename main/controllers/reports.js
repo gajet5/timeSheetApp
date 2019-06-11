@@ -17,7 +17,22 @@ module.exports = {
 
     async getReport({user, year, month}) {
         try {
-            return await fs.readJson(path.join(config.path.reportsFolder, user, year, month, 'report.json'));
+            let report = await fs.readJson(path.join(config.path.reportsFolder, user, year, month, 'report.json'));
+            for (let day in report) {
+                if (report[day].startFoto) {
+                    report[day].startFoto = path.join(config.path.reportsFolder, report[day].startFoto)
+                }
+                if (report[day].stopFoto) {
+                    report[day].stopFoto = path.join(config.path.reportsFolder, report[day].stopFoto)
+                }
+                if (report[day].pauseFoto) {
+                    report[day].pauseFoto = path.join(config.path.reportsFolder, report[day].pauseFoto)
+                }
+                if (report[day].unpauseFoto) {
+                    report[day].unpauseFoto = path.join(config.path.reportsFolder, report[day].unpauseFoto)
+                }
+            }
+            return report;
         } catch (e) {
             return false;
         }

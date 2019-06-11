@@ -21,10 +21,10 @@ module.exports = {
     async saveTimeSheet(data) {
         try {
             let pathToReportFolder = path.join(config.path.reportsFolder, data.user, data.year, data.month);
-            let fotoPath = path.join(pathToReportFolder, `${data.timeSheet[data.day][`${data.status}Time`]}.jpg`);
+            let fotoPath = path.join(data.user, data.year, data.month, `${data.timeSheet[data.day][`${data.status}Time`]}.jpg`);
 
             await fs.outputFile(
-                fotoPath,
+                path.join(config.path.reportsFolder, fotoPath),
                 data.timeSheet[data.day][`${data.status}Foto`].replace(/^data:image\/jpeg;base64,/, ""),
                 'base64'
             );
