@@ -22,7 +22,7 @@ if (process.env.NODE_ENV === 'development') {
 function createWindow() {
     mainWindow = new BrowserWindow({
         width: 450,
-        height: 600,
+        height: 550,
         resizable: false,
         title: 'Time Sheet',
         webPreferences: {

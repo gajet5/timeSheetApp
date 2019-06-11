@@ -256,7 +256,7 @@
                         startFoto: this.reports[day].startFoto,
                         stopTime: moment(stopTime).format('HH:mm:ss'),
                         stopFoto: this.reports[day].stopFoto,
-                        timeAtWork: (Math.round(parseFloat(moment.duration((stopTime - startTime) - (unpauseTime - pauseTime)).asHours()) * 100) / 100),
+                        timeAtWork: Math.round(parseFloat(moment.duration((stopTime - startTime) - (unpauseTime - pauseTime)).asHours()) * 100) / 100,
                         extraHours: 0,
                         pauseTime: moment(pauseTime).format('HH:mm:ss'),
                         isPauseTime,
@@ -283,9 +283,9 @@
                         if (report.dayOfWeek === 'Sun' || report.dayOfWeek === 'Sat') {
                             this.totalHoursDayOff += report.timeAtWork;
                         } else {
-                            if (report.timeAtWork > 8) {
-                                report.extraHours = report.timeAtWork - 8;
-                                report.timeAtWork = report.timeAtWork - report.extraHours;
+                            if (report.timeAtWork > 9) {
+                                report.extraHours = report.timeAtWork - 9;
+                                report.timeAtWork = Math.round((report.timeAtWork - report.extraHours) * 100) / 100;
                             }
 
                             this.totalHours += Math.round(report.timeAtWork * 100) / 100;
@@ -312,7 +312,7 @@
 
 <style scoped>
     .heigh-reports {
-        height: 430px;
+        height: 370px;
     }
 
     .day-off-border {

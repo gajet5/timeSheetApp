@@ -3,7 +3,7 @@
     <v-layout align-center justify-center>
       <v-flex xs9>
         <v-card>
-          <v-card-text>
+          <v-card-text class="pb-0">
             <web-cam
                     :class="{'rotate--src-video': rotateImg}"
                     ref="webcam"
@@ -13,7 +13,7 @@
                     @cameras="onCameras"
             ></web-cam>
           </v-card-text>
-          <v-card-actions>
+          <v-card-actions class="pb-0">
             <v-layout class="justify-center">
               <v-flex xs8>
                 <v-switch
@@ -30,17 +30,17 @@
     <v-layout class="mt-3">
       <v-flex xs12>
         <v-card>
-          <v-card-title class="pb-0">
+          <v-card-title class="pb-0 pt-2">
             Дата: {{ dateTime }}
           </v-card-title>
-          <v-card-text class="pb-0">
+          <v-card-text class="pb-0 pt-0">
             <v-select
                     :items="$store.getters.users"
                     label="Сотрудник"
                     v-model="userSelected"
             ></v-select>
           </v-card-text>
-          <v-card-actions v-show="userSelected" class="pt-0">
+          <v-card-actions v-show="userSelected" class="pt-0 pb-2">
             <v-spacer></v-spacer>
             <div v-show="inWork && !outWork">
               <v-btn flat color="warning" v-if="!inPause" @click="pauseWork">Пауза</v-btn>
