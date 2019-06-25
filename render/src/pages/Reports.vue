@@ -267,13 +267,6 @@
                         unpauseFoto: this.reports[day].unpauseFoto
                     };
 
-                    // todo: Непонятный баг с округлением.
-                    // let timeRound = Math.round(report.timeAtWork * 100) / 100;
-
-                    if (report.timeAtWork === -1) {
-                        report.timeAtWork = 0;
-                    }
-
                     if (isStopTime) {
                         if (isPauseTime && !isUnpauseTime) {
                             this.list.push(report);
@@ -284,19 +277,28 @@
                             this.totalHoursDayOff += report.timeAtWork;
                         } else {
                             if (report.timeAtWork > 9) {
-                                report.extraHours = report.timeAtWork - 9;
+                                report.extraHours = Math.round((report.timeAtWork - 9) * 100) / 100;
                                 report.timeAtWork = Math.round((report.timeAtWork - report.extraHours) * 100) / 100;
                             }
 
-                            this.totalHours += Math.round(report.timeAtWork * 100) / 100;
-                            this.totalExtraHours += Math.round(report.extraHours * 100) / 100;
+                            this.totalHours = Math.round((this.totalHours + report.timeAtWork) * 100) / 100;
+                            this.totalExtraHours = Math.round((this.totalExtraHours + report.extraHours) * 100) / 100;
                         }
 
                         this.totalDays += 1;
                     }
-
                     this.list.push(report);
                 }
+
+                this.list = this.list.sort((a, b) => {
+                    if (parseInt(a.day) < parseInt(b.day)) {
+                        return -1;
+                    } else if (parseInt(a.day) > parseInt(b.day)) {
+                        return 1;
+                    } else {
+                        return 0;
+                    }
+                });
             }
         },
         methods: {

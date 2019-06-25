@@ -33,6 +33,7 @@
                             type="password"
                             v-model="inputPassword"
                             @keypress.enter="dialog = false"
+                            autofocus
                     ></v-text-field>
 
                     <v-spacer></v-spacer>
