@@ -30,6 +30,9 @@ module.exports = () => {
     ipcMain.on('get-month-reports', async (event, data) => {
         event.sender.send('get-month-reports-replay', await reportsController.getMonth(data));
     });
+    ipcMain.on('get-day-reports', async (event, data) => {
+        event.sender.send('get-day-reports-replay', await reportsController.getDay(data));
+    });
     ipcMain.on('get-reports', async (event, data) => {
         event.sender.send('get-reports-replay', await reportsController.getReport(data));
     });

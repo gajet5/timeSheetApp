@@ -82,6 +82,15 @@ export default new Vuex.Store({
                 });
             });
         },
+        getDayReports(ctx, data) {
+            ipcRenderer.send('get-day-reports', data);
+
+            return new Promise(resolve => {
+                ipcRenderer.once('get-day-reports-replay', (event, result) => {
+                    resolve(result);
+                });
+            });
+        },
         getReports(ctx, data) {
             ipcRenderer.send('get-reports', data);
 

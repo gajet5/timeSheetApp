@@ -69,6 +69,11 @@ if (!gotTheLock) {
 //close secound instance
 
 app.on('ready', createWindow);
+app.on('ready', () => {
+    if (process.env.NODE_ENV !== 'production') {
+        require('vue-devtools').install()
+    }
+});
 
 app.on('window-all-closed', function() {
     if (process.platform !== 'darwin') {
