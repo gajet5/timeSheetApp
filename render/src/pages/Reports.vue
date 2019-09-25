@@ -248,9 +248,7 @@
                 usersReports: [],
                 userReportsSelected: '',
                 yearsReports: [],
-                // yearReportsSelected: '',
                 monthsReports: [],
-                // monthReportsSelected: '',
                 dateSelected: false,
                 reports: null,
                 totalDays: 0,
@@ -269,8 +267,6 @@
                 val && setTimeout(() => (this.$refs.stopDatePicker.activePicker = 'YEAR'));
             },
             async userReportsSelected() {
-                // this.yearReportsSelected = '';
-                // this.monthReportsSelected = '';
                 this.disabledStartDate = false;
                 this.startDate = null;
                 this.stopDate = null;
@@ -295,29 +291,10 @@
 
                 this.minStartDate = `${minYear}-${('0' + minMonth).slice(-2)}-${('0' + minDay).slice(-2)}`;
             },
-            // async yearReportsSelected() {
-            //     this.monthReportsSelected = '';
-            //     this.list = [];
-            //     if (!this.yearReportsSelected) {
-            //         return false;
-            //     }
-            //     this.monthReports = await this.$store.dispatch('getMonthReports', {
-            //         user: this.userReportsSelected,
-            //         year: this.yearReportsSelected
-            //     });
-            // },
-            // async monthReportsSelected() {
-            //     if (!this.monthReportsSelected) {
-            //         return false;
-            //     }
-            //     this.reports = await this.$store.dispatch('getReports', {
-            //         user: this.userReportsSelected,
-            //         year: this.yearReportsSelected,
-            //         month: this.monthReportsSelected
-            //     });
-            //     this.panel = null;
-            // },
             async dateSelected() {
+                if (!this.dateSelected) {
+                    return false;
+                }
                 if (!this.startDate && !this.stopDate) {
                     return false;
                 }
@@ -328,6 +305,7 @@
                     stopDate: this.stopDate
                 });
                 this.panel = null;
+                this.dateSelected = false;
             },
             reports() {
                 if (!this.reports) {

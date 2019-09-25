@@ -45,29 +45,6 @@ module.exports = {
         return Math.min(...days);
     },
 
-    // async getReport({user, year, month}) {
-    //     try {
-    //         let report = await fs.readJson(path.join(config.path.reportsFolder, user, year, month, 'report.json'));
-    //         for (let day in report) {
-    //             if (report[day].startFoto) {
-    //                 report[day].startFoto = path.join(config.path.reportsFolder, report[day].startFoto)
-    //             }
-    //             if (report[day].stopFoto) {
-    //                 report[day].stopFoto = path.join(config.path.reportsFolder, report[day].stopFoto)
-    //             }
-    //             if (report[day].pauseFoto) {
-    //                 report[day].pauseFoto = path.join(config.path.reportsFolder, report[day].pauseFoto)
-    //             }
-    //             if (report[day].unpauseFoto) {
-    //                 report[day].unpauseFoto = path.join(config.path.reportsFolder, report[day].unpauseFoto)
-    //             }
-    //         }
-    //         return report;
-    //     } catch (e) {
-    //         return false;
-    //     }
-    // }
-
     async getReport({user, startDate, stopDate}) {
         const reports = {};
         const startDateArr = startDate.split('-');
@@ -92,11 +69,17 @@ module.exports = {
                     let report = await fs.readJson(path.join(config.path.reportsFolder, user, year.toString(), ('0' + month).slice(-2), 'report.json'));
                     reports[year][month] = {};
 
-                    for (let day in report) {
-                        if (year === startYear && month === startMonth && month && parseInt(day) < startDay) {
+                    for (let dayIterrator = 1; dayIterrator < 32; dayIterrator += 1) {
+                        const day = ('0' + dayIterrator).slice(-2);
+
+                        if (!report[day]) {
                             continue;
                         }
-                        if (year === stopYear && month === stopMonth && month && parseInt(day) > stopDay) {
+
+                        if (year === startYear && month === startMonth && month && day < startDay) {
+                            continue;
+                        }
+                        if (year === stopYear && month === stopMonth && month && day > stopDay) {
                             break;
                         }
 

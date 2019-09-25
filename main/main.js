@@ -1,5 +1,6 @@
 const events = require('./events');
 const init = require('./services/init');
+const path = require('path');
 
 init();
 
@@ -26,8 +27,8 @@ function createWindow() {
         resizable: false,
         title: 'Time Sheet',
         webPreferences: {
-            nodeIntegration: true,
-            webSecurity: false
+            webSecurity: false,
+            preload: path.join(__dirname, 'preload.js')
         }
     });
 
@@ -70,7 +71,7 @@ if (!gotTheLock) {
 
 app.on('ready', createWindow);
 app.on('ready', () => {
-    if (process.env.NODE_ENV !== 'production') {
+    if (process.env.NODE_ENV === 'development') {
         require('vue-devtools').install()
     }
 });
