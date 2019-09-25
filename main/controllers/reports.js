@@ -76,10 +76,10 @@ module.exports = {
                             continue;
                         }
 
-                        if (year === startYear && month === startMonth && month && day < startDay) {
+                        if (year === startYear && month === startMonth && month && dayIterrator < startDay) {
                             continue;
                         }
-                        if (year === stopYear && month === stopMonth && month && day > stopDay) {
+                        if (year === stopYear && month === stopMonth && month && dayIterrator > stopDay) {
                             break;
                         }
 
