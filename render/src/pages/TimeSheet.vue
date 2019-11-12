@@ -42,8 +42,8 @@
                     </v-card-text>
                     <v-card-actions v-show="userSelected" class="pt-0 pb-2">
                         <v-spacer></v-spacer>
-                        <div v-show="inWork && !outWork" class="d-flex">
-                            <div v-show="!workingOff && inWork">
+                        <div class="d-flex">
+                            <div v-show="!workingOff && inWork && !outWork">
                                 <v-menu
                                         ref="workingOffMenu"
                                         v-model="workingOffMenu"
@@ -64,19 +64,23 @@
                                             :max="maxDateWorkingOff"
                                             :first-day-of-week="1"
                                             locale="ru-ru"
+                                            :allowed-dates="allowedDates"
                                     >
                                         <v-spacer></v-spacer>
                                         <v-btn flat color="success" @click="setWorkingOffDate">OK</v-btn>
-                                        <v-btn flat color="error" @click="workingOffMenu = false">Отмена</v-btn>
+                                        <v-btn flat color="error" @click="workingOffMenu = false">Cancel</v-btn>
                                     </v-date-picker>
                                 </v-menu>
                             </div>
-
-                            <v-btn flat color="warning" v-if="!inPause" @click="pauseWork">Пауза</v-btn>
-                            <v-btn flat color="warning" v-else @click="unpauseWork" v-show="!unPause">Продолжить</v-btn>
+                            <div v-show="inWork && !outWork" >
+                                <v-btn flat color="warning" v-if="!inPause" @click="pauseWork">Пауза</v-btn>
+                                <v-btn flat color="warning" v-else @click="unpauseWork" v-show="!unPause">Продолжить</v-btn>
+                            </div>
+                            <div v-show="!inWork || !outWork">
+                                <v-btn flat color="success" v-if="!inWork" @click="startWork">Приход</v-btn>
+                                <v-btn flat color="error" v-else @click="finishWork" v-show="!outWork">Уход</v-btn>
+                            </div>
                         </div>
-                        <v-btn flat color="success" v-if="!inWork" @click="startWork">Приход</v-btn>
-                        <v-btn flat color="error" v-else @click="finishWork" v-show="!outWork">Уход</v-btn>
                     </v-card-actions>
                 </v-card>
             </v-flex>
@@ -144,16 +148,21 @@
         await this.getTimeSheet();
         const currentDay = this.timeSheet[moment().format('DD')];
 
-        if (!currentDay) {
-          return false;
+        if (currentDay) {
+          this.inWork = !!currentDay.startTime;
+          this.outWork = !!currentDay.stopTime;
+          this.inPause = !!currentDay.pauseTime;
+          this.unPause = !!currentDay.unpauseTime;
+          this.workingOff = currentDay.workingOff;
+          this.workingOffDate = currentDay.workingOffDate;
+        } else {
+          this.inWork = false;
+          this.outWork = false;
+          this.inPause = false;
+          this.unPause = false;
+          this.workingOff = false;
+          this.workingOffDate = null;
         }
-
-        this.inWork = !!currentDay.startTime;
-        this.outWork = !!currentDay.stopTime;
-        this.inPause = !!currentDay.pauseTime;
-        this.unPause = !!currentDay.unpauseTime;
-        this.workingOff = currentDay.workingOff;
-        this.workingOffDate = currentDay.workingOffDate;
       }
     },
     methods: {
@@ -305,6 +314,13 @@
         await this.saveTimeSheet('workingOff');
         this.workingOffMenu = false;
         this.userSelected = '';
+      },
+      allowedDates(value) {
+        if (!this.userSelected || !this.timeSheet) {
+          return false;
+        }
+        const day = value.split('-')[2];
+        return !(day in this.timeSheet);
       }
     }
   };
