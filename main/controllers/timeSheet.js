@@ -20,8 +20,14 @@ module.exports = {
     },
     async saveTimeSheet(data) {
         try {
-            let pathToReportFolder = path.join(config.path.reportsFolder, data.user, data.year, data.month);
-            let fotoPath = path.join(data.user, data.year, data.month, `${data.timeSheet[data.day][`${data.status}Time`]}.jpg`);
+            const pathToReportFolder = path.join(config.path.reportsFolder, data.user, data.year, data.month);
+
+            if (data.status === 'workingOff') {
+                await fs.writeJson(path.join(pathToReportFolder, 'report.json'), data.timeSheet);
+                return true;
+            }
+
+            const fotoPath = path.join(data.user, data.year, data.month, `${data.timeSheet[data.day][`${data.status}Time`]}.jpg`);
 
             await fs.outputFile(
                 path.join(config.path.reportsFolder, fotoPath),

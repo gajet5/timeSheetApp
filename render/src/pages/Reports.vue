@@ -26,11 +26,6 @@
                             <v-flex xs6>
                                 <v-card>
                                     <v-card-text class="pa-2">
-<!--                                        <v-select-->
-<!--                                                :items="yearReports"-->
-<!--                                                label="Год"-->
-<!--                                                v-model="yearReportsSelected"-->
-<!--                                        ></v-select>-->
                                         <v-menu
                                                 ref="startDateMenu"
                                                 v-model="startDateMenu"
@@ -56,6 +51,8 @@
                                                     :max="new Date().toISOString().substr(0, 10)"
                                                     :min="minStartDate"
                                                     @change="startDateSave"
+                                                    :first-day-of-week="1"
+                                                    locale="ru-ru"
                                             ></v-date-picker>
                                         </v-menu>
                                     </v-card-text>
@@ -64,11 +61,6 @@
                             <v-flex xs6>
                                 <v-card>
                                     <v-card-text class="pa-2">
-<!--                                        <v-select-->
-<!--                                                :items="monthReports"-->
-<!--                                                label="Месяц"-->
-<!--                                                v-model="monthReportsSelected"-->
-<!--                                        ></v-select>-->
                                         <v-menu
                                                 ref="stopDateMenu"
                                                 v-model="stopDateMenu"
@@ -94,6 +86,8 @@
                                                     :max="new Date().toISOString().substr(0, 10)"
                                                     :min="startDate"
                                                     @change="stopDateSave"
+                                                    :first-day-of-week="1"
+                                                    locale="ru-ru"
                                             ></v-date-picker>
                                         </v-menu>
                                     </v-card-text>
@@ -110,10 +104,18 @@
                     <v-card-title>
                         <v-layout>
                             <v-flex xs6>
-                                Дней в месяце: {{totalDays}}
+                                Рабочих дней: {{worksDay}}
                             </v-flex>
                             <v-flex xs6>
-                                Часов в месяце: {{totalHours}}
+                                Рабочих часов: {{worksHour}}
+                            </v-flex>
+                        </v-layout>
+                        <v-layout>
+                            <v-flex xs6>
+                                Отработано дней: {{totalDays}}
+                            </v-flex>
+                            <v-flex xs6>
+                                Отработано часов: {{totalHours}}
                             </v-flex>
                         </v-layout>
                         <v-layout>
@@ -229,182 +231,214 @@
 </template>
 
 <script>
-    import moment from 'moment';
+  import moment from 'moment';
 
-    export default {
-        name: "Reports",
-        async beforeMount() {
-            await this.getUsersReports();
-        },
-        data() {
-            return {
-                disabledStartDate: true,
-                minStartDate: '',
-                startDateMenu: false,
-                startDate: null,
-                disabledStopDate: true,
-                stopDateMenu: false,
-                stopDate: null,
-                usersReports: [],
-                userReportsSelected: '',
-                yearsReports: [],
-                monthsReports: [],
-                dateSelected: false,
-                reports: null,
-                totalDays: 0,
-                totalHours: 0,
-                list: [],
-                panel: 0,
-                totalHoursDayOff: 0,
-                totalExtraHours: 0
-            };
-        },
-        watch: {
-            startDateMenu(val) {
-                val && setTimeout(() => (this.$refs.startDatePicker.activePicker = 'YEAR'));
-            },
-            stopDateMenu(val) {
-                val && setTimeout(() => (this.$refs.stopDatePicker.activePicker = 'YEAR'));
-            },
-            async userReportsSelected() {
-                this.disabledStartDate = false;
-                this.startDate = null;
-                this.stopDate = null;
-                this.list = [];
-                this.dateSelected = false;
+  export default {
+    name: 'Reports',
+    async beforeMount() {
+      await this.getUsersReports();
+    },
+    data() {
+      return {
+        disabledStartDate: true,
+        minStartDate: '',
+        startDateMenu: false,
+        startDate: null,
+        disabledStopDate: true,
+        stopDateMenu: false,
+        stopDate: null,
+        usersReports: [],
+        userReportsSelected: '',
+        yearsReports: [],
+        monthsReports: [],
+        dateSelected: false,
+        reports: null,
+        worksDay: 0,
+        worksHour: 0,
+        totalDays: 0,
+        totalHours: 0,
+        list: [],
+        panel: 0,
+        totalHoursDayOff: 0,
+        totalExtraHours: 0
+      };
+    },
+    watch: {
+      startDateMenu(val) {
+        val && setTimeout(() => (this.$refs.startDatePicker.activePicker = 'YEAR'));
+      },
+      stopDateMenu(val) {
+        val && setTimeout(() => (this.$refs.stopDatePicker.activePicker = 'YEAR'));
+      },
+      async userReportsSelected() {
+        this.disabledStartDate = false;
+        this.startDate = null;
+        this.stopDate = null;
+        this.list = [];
+        this.dateSelected = false;
 
-                this.yearsReports = await this.$store.dispatch('getYearReports', this.userReportsSelected);
-                this.yearsReports = this.yearsReports.map(value => parseInt(value));
-                let minYear = Math.min(...this.yearsReports);
+        this.yearsReports = await this.$store.dispatch('getYearReports', this.userReportsSelected);
+        this.yearsReports = this.yearsReports.map(value => parseInt(value));
+        let minYear = Math.min(...this.yearsReports);
 
-                this.monthsReports = await this.$store.dispatch('getMonthReports', {
-                    user: this.userReportsSelected,
-                    year: minYear
-                });
-                this.monthsReports = this.monthsReports.map(value => parseInt(value));
-                let minMonth = Math.min(...this.monthsReports);
-                let minDay = await this.$store.dispatch('getDayReports', {
-                    user: this.userReportsSelected,
-                    year: minYear,
-                    month: minMonth
-                });
+        this.monthsReports = await this.$store.dispatch('getMonthReports', {
+          user: this.userReportsSelected,
+          year: minYear
+        });
+        this.monthsReports = this.monthsReports.map(value => parseInt(value));
+        let minMonth = Math.min(...this.monthsReports);
+        let minDay = await this.$store.dispatch('getDayReports', {
+          user: this.userReportsSelected,
+          year: minYear,
+          month: minMonth
+        });
 
-                this.minStartDate = `${minYear}-${('0' + minMonth).slice(-2)}-${('0' + minDay).slice(-2)}`;
-            },
-            async dateSelected() {
-                if (!this.dateSelected) {
-                    return false;
-                }
-                if (!this.startDate && !this.stopDate) {
-                    return false;
-                }
-
-                this.reports = await this.$store.dispatch('getReports', {
-                    user: this.userReportsSelected,
-                    startDate: this.startDate,
-                    stopDate: this.stopDate
-                });
-                this.panel = null;
-                this.dateSelected = false;
-            },
-            reports() {
-                if (!this.reports) {
-                    return false;
-                }
-
-                this.totalDays = 0;
-                this.totalHours = 0;
-                this.totalHoursDayOff = 0;
-                this.totalExtraHours = 0;
-                this.list = [];
-
-                for (let year in this.reports) {
-                    for (let month in this.reports[year]) {
-                        for (let day in this.reports[year][month]) {
-                            let startTime = parseInt(this.reports[year][month][day].startTime);
-                            let stopTime = parseInt(this.reports[year][month][day].stopTime) === 0 ? startTime : parseInt(this.reports[year][month][day].stopTime);
-                            let isStopTime = parseInt(this.reports[year][month][day].stopTime) !== 0;
-                            let pauseTime = parseInt(this.reports[year][month][day].pauseTime) === 0 ? +moment() : parseInt(this.reports[year][month][day].pauseTime);
-                            let unpauseTime = parseInt(this.reports[year][month][day].unpauseTime) === 0 ? pauseTime : parseInt(this.reports[year][month][day].unpauseTime);
-                            let isPauseTime = parseInt(this.reports[year][month][day].pauseTime) !== 0;
-                            let isUnpauseTime = parseInt(this.reports[year][month][day].unpauseTime) !== 0;
-
-                            let report = {
-                                year,
-                                month: ('0' + month).slice(-2),
-                                day,
-                                dayOfWeek: this.reports[year][month][day].dayOfWeek,
-                                startTime: moment(startTime).format('HH:mm:ss'),
-                                isStopTime,
-                                startFoto: this.reports[year][month][day].startFoto,
-                                stopTime: moment(stopTime).format('HH:mm:ss'),
-                                stopFoto: this.reports[year][month][day].stopFoto,
-                                timeAtWork: Math.round(parseFloat(moment.duration((stopTime - startTime) - (unpauseTime - pauseTime)).asHours()) * 100) / 100,
-                                extraHours: 0,
-                                pauseTime: moment(pauseTime).format('HH:mm:ss'),
-                                isPauseTime,
-                                unpauseTime: moment(unpauseTime).format('HH:mm:ss'),
-                                isUnpauseTime,
-                                pauseTotalTime: Math.round(parseFloat(moment.duration(unpauseTime - pauseTime).asHours()) * 100) / 100,
-                                pauseFoto: this.reports[year][month][day].pauseFoto,
-                                unpauseFoto: this.reports[year][month][day].unpauseFoto
-                            };
-
-                            if (isStopTime) {
-                                if (isPauseTime && !isUnpauseTime) {
-                                    this.list.push(report);
-                                    continue;
-                                }
-
-                                if (report.dayOfWeek === 'Sun' || report.dayOfWeek === 'Sat') {
-                                    this.totalHoursDayOff += report.timeAtWork;
-                                } else {
-                                    if (report.timeAtWork > 9) {
-                                        report.extraHours = Math.round((report.timeAtWork - 9) * 100) / 100;
-                                        report.timeAtWork = Math.round((report.timeAtWork - report.extraHours) * 100) / 100;
-                                    }
-
-                                    this.totalHours = Math.round((this.totalHours + report.timeAtWork) * 100) / 100;
-                                    this.totalExtraHours = Math.round((this.totalExtraHours + report.extraHours) * 100) / 100;
-                                }
-
-                                this.totalDays += 1;
-                            }
-                            this.list.push(report);
-                        }
-                    }
-                }
-
-                this.list = this.list.sort((a, b) => {
-                    if (parseInt(a.year) < parseInt(b.year) && parseInt(a.month) < parseInt(b.month) && parseInt(a.day) < parseInt(b.day)) {
-                        return -1;
-                    } else if (parseInt(a.year) > parseInt(b.year) && parseInt(a.month) > parseInt(b.month) && parseInt(a.day) > parseInt(b.day)) {
-                        return 1;
-                    } else {
-                        return 0;
-                    }
-                });
-            }
-        },
-        methods: {
-            async getUsersReports() {
-                this.usersReports = await this.$store.dispatch('getUsersReports');
-            },
-            isDayOff(day) {
-                return day === 'Sun' || day === 'Sat';
-            },
-            startDateSave(date) {
-                this.$refs.startDateMenu.save(date);
-                this.disabledStopDate = false;
-            },
-            stopDateSave(date) {
-                this.$refs.stopDateMenu.save(date);
-                if (this.startDate && this.stopDate) {
-                    this.dateSelected = true;
-                }
-            }
+        this.minStartDate = `${minYear}-${('0' + minMonth).slice(-2)}-${('0' + minDay).slice(-2)}`;
+      },
+      async dateSelected() {
+        if (!this.dateSelected) {
+          return false;
         }
+        if (!this.startDate && !this.stopDate) {
+          return false;
+        }
+
+        this.getWorksDayHoursInfo();
+
+        this.reports = await this.$store.dispatch('getReports', {
+          user: this.userReportsSelected,
+          startDate: this.startDate,
+          stopDate: this.stopDate
+        });
+        this.panel = null;
+        this.dateSelected = false;
+      },
+      reports() {
+        if (!this.reports) {
+          return false;
+        }
+
+        this.totalDays = 0;
+        this.totalHours = 0;
+        this.totalHoursDayOff = 0;
+        this.totalExtraHours = 0;
+        this.list = [];
+
+        for (let year in this.reports) {
+          for (let month in this.reports[year]) {
+            for (let day in this.reports[year][month]) {
+              const currentDate = this.reports[year][month][day];
+              console.log(currentDate.workingOff);
+              if (currentDate.workingOff) {
+                continue;
+              }
+
+              let startTime = parseInt(currentDate.startTime);
+              let stopTime = parseInt(currentDate.stopTime) === 0 ? startTime : parseInt(currentDate.stopTime);
+              let isStopTime = parseInt(currentDate.stopTime) !== 0;
+              let pauseTime = parseInt(currentDate.pauseTime) === 0 ? +moment() : parseInt(currentDate.pauseTime);
+              let unpauseTime = parseInt(currentDate.unpauseTime) === 0 ? pauseTime : parseInt(currentDate.unpauseTime);
+              let isPauseTime = parseInt(currentDate.pauseTime) !== 0;
+              let isUnpauseTime = parseInt(currentDate.unpauseTime) !== 0;
+
+              let report = {
+                year,
+                month: ('0' + month).slice(-2),
+                day,
+                dayOfWeek: currentDate.dayOfWeek,
+                startTime: moment(startTime).format('HH:mm:ss'),
+                startDateTimeStamp: startTime,
+                isStopTime,
+                startFoto: currentDate.startFoto,
+                stopTime: moment(stopTime).format('HH:mm:ss'),
+                stopFoto: currentDate.stopFoto,
+                timeAtWork: Math.round(parseFloat(moment.duration((stopTime - startTime) - (unpauseTime - pauseTime)).asHours()) * 100) / 100,
+                extraHours: 0,
+                pauseTime: moment(pauseTime).format('HH:mm:ss'),
+                isPauseTime,
+                unpauseTime: moment(unpauseTime).format('HH:mm:ss'),
+                isUnpauseTime,
+                pauseTotalTime: Math.round(parseFloat(moment.duration(unpauseTime - pauseTime).asHours()) * 100) / 100,
+                pauseFoto: currentDate.pauseFoto,
+                unpauseFoto: currentDate.unpauseFoto
+              };
+
+              if (isStopTime) {
+                if (isPauseTime && !isUnpauseTime) {
+                  this.list.push(report);
+                  continue;
+                }
+
+                if (report.dayOfWeek === 'Sun' || report.dayOfWeek === 'Sat') {
+                  this.totalHoursDayOff += report.timeAtWork;
+                } else {
+                  if (report.timeAtWork > 9) {
+                    report.extraHours = Math.round((report.timeAtWork - 9) * 100) / 100;
+                    report.timeAtWork = Math.round((report.timeAtWork - report.extraHours) * 100) / 100;
+                  }
+
+                  this.totalHours = Math.round((this.totalHours + report.timeAtWork) * 100) / 100;
+                  this.totalExtraHours = Math.round((this.totalExtraHours + report.extraHours) * 100) / 100;
+                }
+
+                this.totalDays += 1;
+              }
+              this.list.push(report);
+            }
+          }
+        }
+
+        this.list = this.list.sort((a, b) => {
+          if (a.startDateTimeStamp < b.startDateTimeStamp) {
+            return -1;
+          } else if (a.startDateTimeStamp > b.startDateTimeStamp) {
+            return 1;
+          } else {
+            return 0;
+          }
+        });
+      }
+    },
+    methods: {
+      async getUsersReports() {
+        this.usersReports = await this.$store.dispatch('getUsersReports');
+      },
+      isDayOff(day) {
+        return day === 'Sun' || day === 'Sat';
+      },
+      startDateSave(date) {
+        this.$refs.startDateMenu.save(date);
+        this.disabledStopDate = false;
+        if (this.stopDate) {
+          this.dateSelected = true;
+        }
+      },
+      stopDateSave(date) {
+        this.$refs.stopDateMenu.save(date);
+        if (this.startDate && this.stopDate) {
+          this.dateSelected = true;
+        }
+      },
+      getWorksDayHoursInfo() {
+        this.worksHour = 0;
+        this.worksDay = 0;
+        let start = moment(this.startDate, 'YYYY-MM-DD');
+        let stop = moment(this.stopDate, 'YYYY-MM-DD');
+        let startStamp = start.unix();
+        let stopStamp = stop.unix();
+
+        while (startStamp <= stopStamp) {
+          if (!/Sa|Su/.test(start.format('dd'))) {
+            this.worksHour += 9;
+            this.worksDay += 1;
+          }
+
+          start = start.add(1, 'd');
+          startStamp = start.unix();
+        }
+      }
     }
+  };
 </script>
 
 <style scoped>
