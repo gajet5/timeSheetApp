@@ -41,10 +41,10 @@
   "homepage": "https://github.com/gajet5/timeSheetApp#readme",
   "devDependencies": {
     "electron": "^5.0.10",
-    "electron-builder": "^20.44.4",
-    "vue-devtools": "^5.1.3"
+    "electron-builder": "^20.44.4"
   },
   "dependencies": {
-    "fs-extra": "^8.1.0"
+    "fs-extra": "^8.1.0",
+    "moment": "^2.24.0"
   }
 }
