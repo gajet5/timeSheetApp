@@ -36,4 +36,7 @@ module.exports = () => {
     ipcMain.on('get-reports', async (event, data) => {
         event.sender.send('get-reports-replay', await reportsController.getReport(data));
     });
+    ipcMain.on('get-report-to-excel', async (event, data) => {
+        reportsController.getReportToExcel(data);
+    });
 };

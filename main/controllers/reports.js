@@ -2,6 +2,8 @@ const fs = require('fs-extra');
 const path = require('path');
 const config = require('../config');
 const moment = require('moment');
+const { dialog } = require('electron')
+const xl = require('excel4node');
 
 module.exports = {
   async getUsers() {
@@ -93,5 +95,62 @@ module.exports = {
     } while (+start <= +stop);
 
     return reports;
+  },
+
+  getReportToExcel(data) {
+    let pathToSave = dialog.showSaveDialog({
+      title: 'Куда сохранить отчёт?',
+      defaultPath: `${data.user}.xlsx`
+    });
+
+    if (!pathToSave) {
+      return false;
+    }
+
+    if (!/\.xlsx$/.test(pathToSave)) {
+      pathToSave += `.xlsx`
+    }
+
+    const wb = new xl.Workbook();
+    const ws = wb.addWorksheet(data.user);
+
+    ws.cell(1, 1, 1, 4, true).string(`Отчёт ${data.user} за ${data.startDate} ${data.stopDate}`);
+    ws.cell(2, 1).string('Раб. дни');
+    ws.cell(2, 2).string('Раб. время');
+    ws.cell(2, 3).string('Вых. дни');
+    ws.cell(2, 4).string('Переработка');
+
+    let startRow = 3;
+
+    function fillCell(row, item, isWeekend) {
+      ws.cell(row, 1).string(`${item.day}.${item.month}.${item.year}`);
+      if (isWeekend) {
+        ws.cell(row, 2).string('');
+        ws.cell(row, 3).number(item.timeAtWork);
+      } else {
+        ws.cell(row, 2).number(item.timeAtWork);
+        ws.cell(row, 3).string('');
+      }
+      ws.cell(row, 4).number(item.extraHours);
+    }
+    
+    for (let item of data.list) {
+      if (item.dayOfWeek === 'Sun' || item.dayOfWeek === 'Sat') {
+        fillCell(startRow, item, true);
+      } else {
+        fillCell(startRow, item, false);
+      }
+
+      startRow += 1;
+    }
+
+    ws.cell(startRow, 1).string('Всего');
+    ws.cell(startRow, 2).formula(`SUM(${xl.getExcelCellRef(3, 2)}:${xl.getExcelCellRef(startRow - 1, 2)})`);
+    ws.cell(startRow, 3).formula(`SUM(${xl.getExcelCellRef(3, 3)}:${xl.getExcelCellRef(startRow - 1, 3)}) * 2`);
+    ws.cell(startRow, 4).formula(`SUM(${xl.getExcelCellRef(3, 4)}:${xl.getExcelCellRef(startRow - 1, 4)})`);
+
+    ws.cell(startRow + 5, 1).string('Подпись');
+
+    wb.write(pathToSave);
   }
 };

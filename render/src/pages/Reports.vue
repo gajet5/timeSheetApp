@@ -1,233 +1,238 @@
 <template xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
-    <v-container grid-list-md>
-        <v-layout>
-            <v-flex xs12>
-                <v-expansion-panel
-                        v-model="panel"
-                >
-                    <v-expansion-panel-content>
-                        <template v-slot:header>
-                            <div>Настройки</div>
-                        </template>
-                        <v-layout>
-                            <v-flex xs12>
-                                <v-card>
-                                    <v-card-text class="pa-2">
-                                        <v-select
-                                                :items="usersReports"
-                                                label="Пользователь"
-                                                v-model="userReportsSelected"
-                                        ></v-select>
-                                    </v-card-text>
-                                </v-card>
-                            </v-flex>
-                        </v-layout>
-                        <v-layout>
-                            <v-flex xs6>
-                                <v-card>
-                                    <v-card-text class="pa-2">
-                                        <v-menu
-                                                ref="startDateMenu"
-                                                v-model="startDateMenu"
-                                                :close-on-content-click="false"
-                                                transition="scale-transition"
-                                                offset-y
-                                                full-width
-                                                min-width="290px"
-                                        >
-                                            <template v-slot:activator="{ on }">
-                                                <v-text-field
-                                                        v-model="startDate"
-                                                        label="Start date"
-                                                        prepend-icon="event"
-                                                        readonly
-                                                        v-on="on"
-                                                        :disabled="disabledStartDate"
-                                                ></v-text-field>
-                                            </template>
-                                            <v-date-picker
-                                                    ref="startDatePicker"
-                                                    v-model="startDate"
-                                                    :max="new Date().toISOString().substr(0, 10)"
-                                                    :min="minStartDate"
-                                                    @change="startDateSave"
-                                                    :first-day-of-week="1"
-                                                    locale="ru-ru"
-                                            ></v-date-picker>
-                                        </v-menu>
-                                    </v-card-text>
-                                </v-card>
-                            </v-flex>
-                            <v-flex xs6>
-                                <v-card>
-                                    <v-card-text class="pa-2">
-                                        <v-menu
-                                                ref="stopDateMenu"
-                                                v-model="stopDateMenu"
-                                                :close-on-content-click="false"
-                                                transition="scale-transition"
-                                                offset-y
-                                                full-width
-                                                min-width="290px"
-                                        >
-                                            <template v-slot:activator="{ on }">
-                                                <v-text-field
-                                                        v-model="stopDate"
-                                                        label="Stop date"
-                                                        prepend-icon="event"
-                                                        readonly
-                                                        v-on="on"
-                                                        :disabled="disabledStopDate"
-                                                ></v-text-field>
-                                            </template>
-                                            <v-date-picker
-                                                    ref="stopDatePicker"
-                                                    v-model="stopDate"
-                                                    :max="new Date().toISOString().substr(0, 10)"
-                                                    :min="startDate"
-                                                    @change="stopDateSave"
-                                                    :first-day-of-week="1"
-                                                    locale="ru-ru"
-                                            ></v-date-picker>
-                                        </v-menu>
-                                    </v-card-text>
-                                </v-card>
-                            </v-flex>
-                        </v-layout>
-                    </v-expansion-panel-content>
-                </v-expansion-panel>
-            </v-flex>
-        </v-layout>
-        <v-layout v-show="list.length">
-            <v-flex xs12>
-                <v-card class="scroll-y heigh-reports overflow-x-hidden">
-                    <v-card-title>
-                        <v-layout>
-                            <v-flex xs6>
-                                Рабочих дней: {{worksDay}}
-                            </v-flex>
-                            <v-flex xs6>
-                                Рабочих часов: {{worksHour}}
-                            </v-flex>
-                        </v-layout>
-                        <v-layout>
-                            <v-flex xs6>
-                                Отработано дней: {{totalDays}}
-                            </v-flex>
-                            <v-flex xs6>
-                                Отработано часов: {{totalHours}}
-                            </v-flex>
-                        </v-layout>
-                        <v-layout>
-                            <v-flex xs6>
-                                Переработка: {{totalExtraHours}}
-                            </v-flex>
-                            <v-flex xs6>
-                                Выходные часы: {{totalHoursDayOff}}
-                            </v-flex>
-                        </v-layout>
-                    </v-card-title>
-                    <v-container fluid
-                                 v-for="(item, index) in list"
-                                 :key="index"
-                    >
-                        <v-card :class="{'day-off-border': isDayOff(item.dayOfWeek)}">
-                            <v-card-text>
-                                <v-layout>
-                                    <v-flex xs6>
-                                        <div>Дата: {{item.dayOfWeek}} {{item.day}}.{{item.month}}.{{item.year}}</div>
-                                        <div>
-                                            На работе: {{item.timeAtWork}}
-                                            <v-icon color="error" v-show="!item.isStopTime">
-                                                warning
-                                            </v-icon>
-                                        </div>
-                                    </v-flex>
-                                    <v-flex xs6>
-                                        <div>Переработка: {{item.extraHours}}</div>
-                                        <div>
-                                            Пауза: {{item.pauseTotalTime}}
-                                            <v-icon color="error" v-show="item.isPauseTime && !item.isUnpauseTime">
-                                                warning
-                                            </v-icon>
-                                        </div>
-                                    </v-flex>
-                                </v-layout>
-                                <v-expansion-panel>
-                                    <v-expansion-panel-content>
-                                        <template v-slot:header>
-                                            <div>Приход\Уход</div>
-                                        </template>
-                                        <v-card>
-                                            <v-card-text>
-                                                <v-layout>
-                                                    <v-flex xs6>
-                                                        <v-avatar
-                                                                size="100px"
-                                                                tile
-                                                                color="grey lighten-4"
-                                                        >
-                                                            <img :src="item.startFoto">
-                                                        </v-avatar>
-                                                        <div>Приход</div>
-                                                        <div>{{item.startTime}}</div>
-                                                    </v-flex>
-                                                    <v-flex xs6>
-                                                        <v-avatar
-                                                                size="100px"
-                                                                tile
-                                                                color="grey lighten-4"
-                                                        >
-                                                            <img :src="item.stopFoto">
-                                                        </v-avatar>
-                                                        <div>Уход</div>
-                                                        <div>{{item.stopTime}}</div>
-                                                    </v-flex>
-                                                </v-layout>
-                                            </v-card-text>
-                                        </v-card>
-                                    </v-expansion-panel-content>
-                                    <v-expansion-panel-content>
-                                        <template v-slot:header>
-                                            <div>Пауза\Продолжение</div>
-                                        </template>
-                                        <v-card>
-                                            <v-card-text>
-                                                <v-layout>
-                                                    <v-flex xs6>
-                                                        <v-avatar
-                                                                size="100px"
-                                                                tile
-                                                                color="grey lighten-4"
-                                                        >
-                                                            <img :src="item.pauseFoto">
-                                                        </v-avatar>
-                                                        <div>Пауза</div>
-                                                        <div>{{item.pauseTime}}</div>
-                                                    </v-flex>
-                                                    <v-flex xs6>
-                                                        <v-avatar
-                                                                size="100px"
-                                                                tile
-                                                                color="grey lighten-4"
-                                                        >
-                                                            <img :src="item.unpauseFoto">
-                                                        </v-avatar>
-                                                        <div>Продолжение</div>
-                                                        <div>{{item.unpauseTime}}</div>
-                                                    </v-flex>
-                                                </v-layout>
-                                            </v-card-text>
-                                        </v-card>
-                                    </v-expansion-panel-content>
-                                </v-expansion-panel>
-                            </v-card-text>
-                        </v-card>
-                    </v-container>
+  <v-container grid-list-md>
+    <v-layout>
+      <v-flex xs12>
+        <v-expansion-panel
+            v-model="panel"
+        >
+          <v-expansion-panel-content>
+            <template v-slot:header>
+              <div>Настройки</div>
+            </template>
+            <v-layout>
+              <v-flex xs12>
+                <v-card>
+                  <v-card-text class="pa-2">
+                    <v-select
+                        :items="usersReports"
+                        label="Пользователь"
+                        v-model="userReportsSelected"
+                    ></v-select>
+                  </v-card-text>
                 </v-card>
-            </v-flex>
-        </v-layout>
-    </v-container>
+              </v-flex>
+            </v-layout>
+            <v-layout>
+              <v-flex xs6>
+                <v-card>
+                  <v-card-text class="pa-2">
+                    <v-menu
+                        ref="startDateMenu"
+                        v-model="startDateMenu"
+                        :close-on-content-click="false"
+                        transition="scale-transition"
+                        offset-y
+                        full-width
+                        min-width="290px"
+                    >
+                      <template v-slot:activator="{ on }">
+                        <v-text-field
+                            v-model="startDate"
+                            label="Start date"
+                            prepend-icon="event"
+                            readonly
+                            v-on="on"
+                            :disabled="disabledStartDate"
+                        ></v-text-field>
+                      </template>
+                      <v-date-picker
+                          ref="startDatePicker"
+                          v-model="startDate"
+                          :max="new Date().toISOString().substr(0, 10)"
+                          :min="minStartDate"
+                          @change="startDateSave"
+                          :first-day-of-week="1"
+                          locale="ru-ru"
+                      ></v-date-picker>
+                    </v-menu>
+                  </v-card-text>
+                </v-card>
+              </v-flex>
+              <v-flex xs6>
+                <v-card>
+                  <v-card-text class="pa-2">
+                    <v-menu
+                        ref="stopDateMenu"
+                        v-model="stopDateMenu"
+                        :close-on-content-click="false"
+                        transition="scale-transition"
+                        offset-y
+                        full-width
+                        min-width="290px"
+                    >
+                      <template v-slot:activator="{ on }">
+                        <v-text-field
+                            v-model="stopDate"
+                            label="Stop date"
+                            prepend-icon="event"
+                            readonly
+                            v-on="on"
+                            :disabled="disabledStopDate"
+                        ></v-text-field>
+                      </template>
+                      <v-date-picker
+                          ref="stopDatePicker"
+                          v-model="stopDate"
+                          :max="new Date().toISOString().substr(0, 10)"
+                          :min="startDate"
+                          @change="stopDateSave"
+                          :first-day-of-week="1"
+                          locale="ru-ru"
+                      ></v-date-picker>
+                    </v-menu>
+                  </v-card-text>
+                </v-card>
+              </v-flex>
+            </v-layout>
+          </v-expansion-panel-content>
+        </v-expansion-panel>
+      </v-flex>
+    </v-layout>
+    <v-layout v-show="list.length">
+      <v-flex xs12>
+        <v-btn small block color="success" @click="handleGetReport">Сформировать отчёт</v-btn>
+      </v-flex>
+    </v-layout>
+    <v-layout v-show="list.length">
+      <v-flex xs12>
+        <v-card class="scroll-y heigh-reports overflow-x-hidden">
+          <v-card-title>
+            <v-layout>
+              <v-flex xs6>
+                Рабочих дней: {{worksDay}}
+              </v-flex>
+              <v-flex xs6>
+                Рабочих часов: {{worksHour}}
+              </v-flex>
+            </v-layout>
+            <v-layout>
+              <v-flex xs6>
+                Отработано дней: {{totalDays}}
+              </v-flex>
+              <v-flex xs6>
+                Отработано часов: {{totalHours}}
+              </v-flex>
+            </v-layout>
+            <v-layout>
+              <v-flex xs6>
+                Переработка: {{totalExtraHours}}
+              </v-flex>
+              <v-flex xs6>
+                Выходные часы: {{totalHoursDayOff}}
+              </v-flex>
+            </v-layout>
+          </v-card-title>
+          <v-container fluid
+                       v-for="(item, index) in list"
+                       :key="index"
+          >
+            <v-card :class="{'day-off-border': isDayOff(item.dayOfWeek)}">
+              <v-card-text>
+                <v-layout>
+                  <v-flex xs6>
+                    <div>Дата: {{item.dayOfWeek}} {{item.day}}.{{item.month}}.{{item.year}}</div>
+                    <div>
+                      На работе: {{item.timeAtWork}}
+                      <v-icon color="error" v-show="!item.isStopTime">
+                        warning
+                      </v-icon>
+                    </div>
+                  </v-flex>
+                  <v-flex xs6>
+                    <div>Переработка: {{item.extraHours}}</div>
+                    <div>
+                      Пауза: {{item.pauseTotalTime}}
+                      <v-icon color="error" v-show="item.isPauseTime && !item.isUnpauseTime">
+                        warning
+                      </v-icon>
+                    </div>
+                  </v-flex>
+                </v-layout>
+                <v-expansion-panel>
+                  <v-expansion-panel-content>
+                    <template v-slot:header>
+                      <div>Приход\Уход</div>
+                    </template>
+                    <v-card>
+                      <v-card-text>
+                        <v-layout>
+                          <v-flex xs6>
+                            <v-avatar
+                                size="100px"
+                                tile
+                                color="grey lighten-4"
+                            >
+                              <img :src="item.startFoto">
+                            </v-avatar>
+                            <div>Приход</div>
+                            <div>{{item.startTime}}</div>
+                          </v-flex>
+                          <v-flex xs6>
+                            <v-avatar
+                                size="100px"
+                                tile
+                                color="grey lighten-4"
+                            >
+                              <img :src="item.stopFoto">
+                            </v-avatar>
+                            <div>Уход</div>
+                            <div>{{item.stopTime}}</div>
+                          </v-flex>
+                        </v-layout>
+                      </v-card-text>
+                    </v-card>
+                  </v-expansion-panel-content>
+                  <v-expansion-panel-content>
+                    <template v-slot:header>
+                      <div>Пауза\Продолжение</div>
+                    </template>
+                    <v-card>
+                      <v-card-text>
+                        <v-layout>
+                          <v-flex xs6>
+                            <v-avatar
+                                size="100px"
+                                tile
+                                color="grey lighten-4"
+                            >
+                              <img :src="item.pauseFoto">
+                            </v-avatar>
+                            <div>Пауза</div>
+                            <div>{{item.pauseTime}}</div>
+                          </v-flex>
+                          <v-flex xs6>
+                            <v-avatar
+                                size="100px"
+                                tile
+                                color="grey lighten-4"
+                            >
+                              <img :src="item.unpauseFoto">
+                            </v-avatar>
+                            <div>Продолжение</div>
+                            <div>{{item.unpauseTime}}</div>
+                          </v-flex>
+                        </v-layout>
+                      </v-card-text>
+                    </v-card>
+                  </v-expansion-panel-content>
+                </v-expansion-panel>
+              </v-card-text>
+            </v-card>
+          </v-container>
+        </v-card>
+      </v-flex>
+    </v-layout>
+  </v-container>
 </template>
 
 <script>
@@ -328,7 +333,6 @@
           for (let month in this.reports[year]) {
             for (let day in this.reports[year][month]) {
               const currentDate = this.reports[year][month][day];
-              console.log(currentDate.workingOff);
               if (currentDate.workingOff) {
                 continue;
               }
@@ -436,17 +440,26 @@
           start = start.add(1, 'd');
           startStamp = start.unix();
         }
+      },
+      handleGetReport() {
+        const data = {
+          user: this.userReportsSelected,
+          startDate: this.startDate,
+          stopDate: this.stopDate,
+          list: this.list
+        };
+        this.$store.dispatch('getReportToExcel', data);
       }
     }
   };
 </script>
 
 <style scoped>
-    .heigh-reports {
-        height: 370px;
-    }
+  .heigh-reports {
+    height: 330px;
+  }
 
-    .day-off-border {
-        border: 1px solid #ff5252 !important;
-    }
+  .day-off-border {
+    border: 1px solid #ff5252 !important;
+  }
 </style>

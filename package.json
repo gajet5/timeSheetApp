@@ -44,6 +44,7 @@
     "electron-builder": "^20.44.4"
   },
   "dependencies": {
+    "excel4node": "^1.7.2",
     "fs-extra": "^8.1.0",
     "moment": "^2.24.0"
   }

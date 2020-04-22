@@ -100,6 +100,9 @@ export default new Vuex.Store({
                     resolve(result);
                 });
             });
+        },
+        getReportToExcel(ctx, data) {
+            ipcRenderer.send('get-report-to-excel', data);
         }
     }
 });
