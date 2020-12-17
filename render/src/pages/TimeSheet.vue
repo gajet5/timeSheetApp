@@ -34,11 +34,11 @@
                         Дата: {{ dateTime }}
                     </v-card-title>
                     <v-card-text class="pb-0 pt-0">
-                        <v-select
+                        <v-autocomplete
                                 :items="$store.getters.users"
                                 label="Сотрудник"
                                 v-model="userSelected"
-                        ></v-select>
+                        ></v-autocomplete>
                     </v-card-text>
                     <v-card-actions v-show="userSelected" class="pt-0 pb-2">
                         <v-spacer></v-spacer>

@@ -114,6 +114,14 @@ module.exports = {
     const wb = new xl.Workbook();
     const ws = wb.addWorksheet(data.user);
 
+    const alertStyle = wb.createStyle({
+      fill: {
+        type: 'pattern',
+        patternType: 'solid',
+        fgColor: 'ff5252'
+      }
+    });
+
     ws.cell(1, 1, 1, 4, true).string(`Отчёт ${data.user} за ${data.startDate} ${data.stopDate}`);
     ws.cell(2, 1).string('Раб. дни');
     ws.cell(2, 2).string('Раб. время');
@@ -126,9 +134,9 @@ module.exports = {
       ws.cell(row, 1).string(`${item.day}.${item.month}.${item.year}`);
       if (isWeekend) {
         ws.cell(row, 2).string('');
-        ws.cell(row, 3).number(item.timeAtWork);
+        ws.cell(row, 3).number((8 / 9) * item.timeAtWork).style(!item.timeAtWork ? alertStyle : {});
       } else {
-        ws.cell(row, 2).number(item.timeAtWork);
+        ws.cell(row, 2).number((8 / 9) * item.timeAtWork).style(!item.timeAtWork ? alertStyle : {});
         ws.cell(row, 3).string('');
       }
       ws.cell(row, 4).number(item.extraHours);
@@ -146,7 +154,7 @@ module.exports = {
 
     ws.cell(startRow, 1).string('Всего');
     ws.cell(startRow, 2).formula(`SUM(${xl.getExcelCellRef(3, 2)}:${xl.getExcelCellRef(startRow - 1, 2)})`);
-    ws.cell(startRow, 3).formula(`SUM(${xl.getExcelCellRef(3, 3)}:${xl.getExcelCellRef(startRow - 1, 3)}) * 2`);
+    ws.cell(startRow, 3).formula(`SUM(${xl.getExcelCellRef(3, 3)}:${xl.getExcelCellRef(startRow - 1, 3)})`);
     ws.cell(startRow, 4).formula(`SUM(${xl.getExcelCellRef(3, 4)}:${xl.getExcelCellRef(startRow - 1, 4)})`);
 
     ws.cell(startRow + 5, 1).string('Подпись');
