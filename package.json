@@ -40,7 +40,7 @@
   },
   "homepage": "https://github.com/gajet5/timeSheetApp#readme",
   "devDependencies": {
-    "electron": "^5.0.10",
+    "electron": "^9.4.0",
     "electron-builder": "^20.44.4"
   },
   "dependencies": {
